@@ -12,6 +12,12 @@
         </config-file>
         <config-file parent="/*" target="AndroidManifest.xml"></config-file>
         <source-file src="src/android/Firmata.java" target-dir="src/com/github/warp/cordova-firmata/Firmata" />
+        
+        <framework src="src/android/usb-serial-for-android.gradle" custom="true" type="gradleReference" />
+        <resource-file src="lib/usb-serial-for-android-0.2.0-SNAPSHOT.aar" target="libs/usb-serial-for-android.aar" />
+        
+        <framework src="src/android/arduino-firmata-android.gradle" custom="true" type="gradleReference" />
+        <resource-file src="lib/arduino-firmata-android-0.3.0-SNAPSHOT.aar" target="libs/arduino-firmata-android.aar" />
     </platform>
     <platform name="browser">
         <config-file target="config.xml" parent="/*">
