@@ -14,7 +14,8 @@ module.exports = {
   digitalWrite: success,
   analogWrite: success,
   servoWrite: success,
-  cleanup: success
+  cleanup: success,
+  sendMessage: success,
 }
 
 require('cordova/exec/proxy').add('Firmata', module.exports)

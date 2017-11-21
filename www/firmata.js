@@ -53,3 +53,7 @@ exports.analogWrite = function (pin, value, success, error) {
 exports.servoWrite = function (pin, angle, success, error) {
   exec(success, error, 'Firmata', 'servoWrite', [pin, angle])
 }
+
+exports.sendMessage = function(command, data) {
+  exec(success, error, 'Firmata', 'sendMessage', [command, data])
+}

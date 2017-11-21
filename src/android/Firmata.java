@@ -107,6 +107,11 @@ public class Firmata extends CordovaPlugin {
             int angle = args.getInt(1);
             this.servoWrite(pin, angle, callbackContext);
             return true;
+        } else if (action.equals("sendMessage")) {
+            int command = args.getInt(0);
+            JSONArray data = args.getJSONArray(1);
+            this.sendMessage(command, data, callbackContext);
+            return true;
         }
         return false;
     }
@@ -194,6 +199,19 @@ public class Firmata extends CordovaPlugin {
 
     private int boolToInt(boolean b) {
         return b ? 1 : 0;
+    }
+
+    private void sendMessage(int command, JSONArray data, final CallbackContext callbackContext) {
+        try {
+            byte[] bytes = new byte[data.length()];
+            for (int i = 0; i < data.length(); i++) {
+                bytes[i] = (byte) data.getInt(i);
+            }
+            arduino.sysex((byte) command, bytes);
+            callbackContext.success();
+        } catch (JSONException e) {
+            callbackContext.error(e.getMessage());
+        }
     }
 
     private class UsbBroadcastReceiver extends BroadcastReceiver {
