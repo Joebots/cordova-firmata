@@ -7,11 +7,11 @@
     <platform name="android">
         <config-file parent="/*" target="res/xml/config.xml">
             <feature name="Firmata">
-                <param name="android-package" value="com.joebotics.cordova.firmata.Firmata" />
+                <param name="android-package" value="com.joebotics.cordova.firmata" />
             </feature>
         </config-file>
         <config-file parent="/*" target="AndroidManifest.xml"></config-file>
-        <source-file src="src/android/Firmata.java" target-dir="src/com/joebotics/cordova/firmata/Firmata" />
+        <source-file src="src/android/Firmata.java" target-dir="src/com/joebotics/cordova/firmata" />
         
         <framework src="src/android/usb-serial-for-android.gradle" custom="true" type="gradleReference" />
         <resource-file src="lib/android/usb-serial-for-android-0.2.0-SNAPSHOT.aar" target="libs/usb-serial-for-android.aar" />
