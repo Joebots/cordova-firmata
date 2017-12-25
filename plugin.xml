@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<plugin id="com.github.warp.cordova-firmata" version="0.2.1" xmlns="http://apache.org/cordova/ns/plugins/1.0" xmlns:android="http://schemas.android.com/apk/res/android">
+<plugin id="com.joebotics.cordova-firmata" version="0.0.1" xmlns="http://apache.org/cordova/ns/plugins/1.0" xmlns:android="http://schemas.android.com/apk/res/android">
     <name>Firmata</name>
     <js-module name="Firmata" src="www/firmata.js">
         <clobbers target="firmata" />
@@ -7,17 +7,17 @@
     <platform name="android">
         <config-file parent="/*" target="res/xml/config.xml">
             <feature name="Firmata">
-                <param name="android-package" value="com.github.warp.cordova.firmata.Firmata" />
+                <param name="android-package" value="com.joebotics.cordova.firmata.Firmata" />
             </feature>
         </config-file>
         <config-file parent="/*" target="AndroidManifest.xml"></config-file>
-        <source-file src="src/android/Firmata.java" target-dir="src/com/github/warp/cordova-firmata/Firmata" />
+        <source-file src="src/android/Firmata.java" target-dir="src/com/joebotics/cordova/firmata/Firmata" />
         
         <framework src="src/android/usb-serial-for-android.gradle" custom="true" type="gradleReference" />
         <resource-file src="lib/android/usb-serial-for-android-0.2.0-SNAPSHOT.aar" target="libs/usb-serial-for-android.aar" />
         
-        <framework src="src/android/arduino-firmata-android.gradle" custom="true" type="gradleReference" />
-        <resource-file src="lib/android/arduino-firmata-android-0.3.0-SNAPSHOT.aar" target="libs/arduino-firmata-android.aar" />
+        <framework src="src/android/firmata4j-android.gradle" custom="true" type="gradleReference" />
+        <resource-file src="lib/android/firmata4j-android-0.1.0-SNAPSHOT.aar" target="libs/firmata4j-android.aar" />
     </platform>
     <platform name="browser">
         <config-file target="config.xml" parent="/*">

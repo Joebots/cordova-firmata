@@ -1,9 +1,4 @@
-package com.github.warp.cordova.firmata;
-
-import java.io.*;
-import java.lang.*;
-import java.util.HashMap;
-import java.util.List;
+package com.joebotics.cordova.firmata;
 
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
@@ -12,29 +7,30 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.hardware.usb.UsbDevice;
-import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbManager;
-import android.util.*;
+import android.util.Log;
 
+import com.hoho.android.usbserial.driver.UsbSerialDriver;
 import com.hoho.android.usbserial.driver.UsbSerialPort;
+import com.hoho.android.usbserial.driver.UsbSerialProber;
 
-import org.apache.cordova.CordovaArgs;
-import org.apache.cordova.CordovaPlugin;
 import org.apache.cordova.CallbackContext;
-
+import org.apache.cordova.CordovaPlugin;
 import org.apache.cordova.PluginResult;
+import org.firmata4j.Pin;
+import org.firmata4j.firmata.FirmataDevice;
 import org.json.JSONArray;
 import org.json.JSONException;
-import org.json.JSONObject;
 
-import org.shokai.firmata.ArduinoFirmata;
-import org.shokai.firmata.ArduinoFirmataEventHandler;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Firmata extends CordovaPlugin {
     private static final String TAG = "CordovaFirmata";
     private static final String ACTION_USB_PERMISSION = TAG + ".USB_PERMISSION";
 
-    private static ArduinoFirmata arduino;
+    private static FirmataDevice device;
 
     private UsbManager usbManager;
     private PendingIntent permissionIntent;
@@ -46,10 +42,10 @@ public class Firmata extends CordovaPlugin {
             usbManager = (UsbManager) webView.getContext().getSystemService(Context.USB_SERVICE);
             permissionIntent = PendingIntent.getBroadcast(webView.getContext(), 0, new Intent(ACTION_USB_PERMISSION), 0);
         }
-
-        if (arduino == null) {
-            arduino = new ArduinoFirmata(this.cordova.getActivity());
-            arduino.setEventHandler(new ArduinoFirmataEventHandler() {
+/*
+        if (device == null) {
+            device = new FirmataDevice(usbManager, port);
+            device.setEventHandler(new ArduinoFirmataEventHandler() {
                 public void onError(String errorMessage) {
                     Log.e(TAG, errorMessage);
                 }
@@ -57,8 +53,8 @@ public class Firmata extends CordovaPlugin {
                     Log.v(TAG, "connection closed");
                 }
             });
-
         }
+*/
 
         if ("hasUsbHostFeature".equals(action)) {
             boolean usbHostFeature = cordova.getActivity().getApplicationContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_USB_HOST);
@@ -90,7 +86,7 @@ public class Firmata extends CordovaPlugin {
         } else if (action.equals("pinMode")) {
             int pin = args.getInt(0);
             byte mode = (byte) args.getInt(1);
-            this.pinMode(pin, mode, callbackContext);
+            this.pinMode(pin, Pin.Mode.resolve(mode), callbackContext);
             return true;
         } else if (action.equals("digitalWrite")) {
             int pin = args.getInt(0);
@@ -107,22 +103,36 @@ public class Firmata extends CordovaPlugin {
             int angle = args.getInt(1);
             this.servoWrite(pin, angle, callbackContext);
             return true;
-        } else if (action.equals("sendMessage")) {
+        } /*else if (action.equals("sendMessage")) {
             int command = args.getInt(0);
             JSONArray data = args.getJSONArray(1);
             this.sendMessage(command, data, callbackContext);
             return true;
-        }
+        }*/
         return false;
     }
 
+    private List<UsbSerialPort> getDeviceList() {
+        UsbManager usbManager = (UsbManager) cordova.getActivity().getApplicationContext().getSystemService(Context.USB_SERVICE);
+        final List<UsbSerialDriver> drivers =
+                UsbSerialProber.getDefaultProber().findAllDrivers(usbManager);
+        final List<UsbSerialPort> result = new ArrayList<UsbSerialPort>();
+        for (final UsbSerialDriver driver : drivers) {
+            final List<UsbSerialPort> ports = driver.getPorts();
+            Log.d(TAG, String.format("+ %s: %s port%s",
+                    driver, Integer.valueOf(ports.size()), ports.size() == 1 ? "" : "s"));
+            result.addAll(ports);
+        }
+        return result;
+    }
+
     private void getBoardVersion(final CallbackContext callbackContext) {
-        String version = arduino.getBoardVersion();
+        String version = device.getProtocol();
         callbackContext.success(version);
     }
 
     private void connect(final CallbackContext callbackContext) {
-        List<UsbSerialPort> ports = arduino.getDeviceList();
+        List<UsbSerialPort> ports = getDeviceList();
         if (ports.size() > 0) {
             if (usbReceiver == null) {
                 usbReceiver = new UsbBroadcastReceiver(callbackContext);
@@ -135,7 +145,9 @@ public class Firmata extends CordovaPlugin {
                 cordova.getThreadPool().execute(new Runnable() {
                     public void run() {
                         try {
-                            arduino.connect(port);
+                            device = new FirmataDevice(usbManager, port);
+                            device.start();
+                            device.ensureInitializationIsDone();
                             callbackContext.success();
                         } catch (IOException e) {
                             callbackContext.error(e.getMessage());
@@ -153,67 +165,87 @@ public class Firmata extends CordovaPlugin {
     }
 
     private void isOpen(final CallbackContext callbackContext) {
-        boolean value = arduino.isOpen();
+        boolean value = device.isReady();
         callbackContext.success(boolToInt(value));
     }
 
     private void close(final CallbackContext callbackContext) {
-        boolean value = arduino.close();
-        callbackContext.success(boolToInt(value));
+        try {
+            device.stop();
+            callbackContext.success();
+        } catch (IOException e) {
+            callbackContext.error(e.getMessage());
+        }
     }
 
     private void reset(final CallbackContext callbackContext) {
-        arduino.reset();
+        //device.reset();
         callbackContext.success();
     }
 
     private void digitalRead(final int pin, final CallbackContext callbackContext) {
-        boolean value = arduino.digitalRead(pin);
-        callbackContext.success(boolToInt(value));
+        long value = device.getPin(pin).getValue();
+        callbackContext.success((int)value);
     }
 
     private void analogRead(final int pin, final CallbackContext callbackContext) {
-        int value = arduino.analogRead(pin);
-        callbackContext.success(value);
+        long value = device.getPin(pin).getValue();
+        callbackContext.success((int)value);
     }
 
-    private void pinMode(final int pin, final byte mode, final CallbackContext callbackContext) {
-        arduino.pinMode(pin, mode);
-        callbackContext.success();
+    private void pinMode(final int pin, final Pin.Mode mode, final CallbackContext callbackContext) {
+        try {
+            device.getPin(pin).setMode(mode);
+            callbackContext.success();
+        } catch (IOException e) {
+            callbackContext.error(e.getMessage());
+        }
     }
 
     private void digitalWrite(final int pin, final boolean value, final CallbackContext callbackContext) {
-        arduino.digitalWrite(pin, value);
-        callbackContext.success();
+        try {
+            device.getPin(pin).setValue(value? 1L: 0L);
+            callbackContext.success();
+        } catch (IOException e) {
+            callbackContext.error(e.getMessage());
+        }
     }
 
     private void analogWrite(final int pin, final int value, final CallbackContext callbackContext) {
-        arduino.analogWrite(pin, value);
-        callbackContext.success();
+        try {
+            device.getPin(pin).setValue(value);
+            callbackContext.success();
+        } catch (IOException e) {
+            callbackContext.error(e.getMessage());
+        }
     }
 
     private void servoWrite(final int pin, final int angle, final CallbackContext callbackContext) {
-        arduino.servoWrite(pin, angle);
-        callbackContext.success();
+        try {
+            device.getPin(pin).setValue(angle);
+            callbackContext.success();
+        } catch (IOException e) {
+            callbackContext.error(e.getMessage());
+        }
     }
 
     private int boolToInt(boolean b) {
         return b ? 1 : 0;
     }
-
+/*
     private void sendMessage(int command, JSONArray data, final CallbackContext callbackContext) {
         try {
             byte[] bytes = new byte[data.length()];
             for (int i = 0; i < data.length(); i++) {
                 bytes[i] = (byte) data.getInt(i);
             }
-            arduino.sysex((byte) command, bytes);
+            device.sendMessage((byte) command, bytes);
             callbackContext.success();
         } catch (JSONException e) {
             callbackContext.error(e.getMessage());
         }
     }
-
+*/
     private class UsbBroadcastReceiver extends BroadcastReceiver {
         private final CallbackContext callbackContext;
 

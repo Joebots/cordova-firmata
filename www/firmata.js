@@ -1,12 +1,17 @@
 var exec = require('cordova/exec')
 
-exports.INPUT = 0
-exports.OUTPUT = 1
-exports.ANALOG = 2
-exports.PWM = 3
-exports.SERVO = 4
-exports.SHIFT = 5
-exports.I2C = 6
+exports.INPUT = 0;
+exports.OUTPUT = 1;
+exports.ANALOG = 2;
+exports.PWM = 3;
+exports.SERVO = 4;
+exports.SHIFT = 5;
+exports.I2C = 6;
+exports.ONEWIRE = 7;
+exports.STEPPER = 8;
+exports.ENCODER = 9;
+exports.SERIAL = 10;
+exports.PULLUP = 11;
 exports.LOW = false
 exports.HIGH = true
 

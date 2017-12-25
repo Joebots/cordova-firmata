@@ -6,7 +6,7 @@ repositories{
 }
 
 dependencies {
-   compile(name:'arduino-firmata-android', ext:'aar')
+   compile(name:'firmata4j-android', ext:'aar')
 }
 
 android {
