@@ -6,7 +6,8 @@ repositories{
 }
 
 dependencies {
-   compile(name:'firmata4j-android', ext:'aar')
+    implementation(name:'firmata4j-android', ext:'aar')
+    implementation 'org.slf4j:slf4j-android:1.7.25'
 }
 
 android {
