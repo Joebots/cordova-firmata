@@ -17,7 +17,9 @@ import com.hoho.android.usbserial.driver.UsbSerialProber;
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaPlugin;
 import org.apache.cordova.PluginResult;
+import org.firmata4j.IOEvent;
 import org.firmata4j.Pin;
+import org.firmata4j.PinEventListener;
 import org.firmata4j.firmata.FirmataDevice;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -102,6 +104,10 @@ public class Firmata extends CordovaPlugin {
             int pin = args.getInt(0);
             int angle = args.getInt(1);
             this.servoWrite(pin, angle, callbackContext);
+            return true;
+        } else if (action.equals("onPinChanged")) {
+            int pin = args.getInt(0);
+            this.onPinChanged(pin, callbackContext);
             return true;
         } /*else if (action.equals("sendMessage")) {
             int command = args.getInt(0);
@@ -224,6 +230,25 @@ public class Firmata extends CordovaPlugin {
         try {
             device.getPin(pin).setValue(angle);
             callbackContext.success();
+        } catch (IOException e) {
+            callbackContext.error(e.getMessage());
+        }
+    }
+
+    private void onPinChanged(final int pin, final CallbackContext callbackContext) {
+        try {
+            device.getPin(pin).setMode(Pin.Mode.INPUT);
+            device.getPin(pin).addEventListener(new PinEventListener() {
+                @Override
+                public void onModeChange(IOEvent ioEvent) {
+
+                }
+
+                @Override
+                public void onValueChange(IOEvent ioEvent) {
+                    callbackContext.success((int) ioEvent.getValue());
+                }
+            });
         } catch (IOException e) {
             callbackContext.error(e.getMessage());
         }

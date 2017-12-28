@@ -62,3 +62,7 @@ exports.servoWrite = function (pin, angle, success, error) {
 exports.sendMessage = function(command, data, success, error) {
   exec(success, error, 'Firmata', 'sendMessage', [command, data])
 }
+
+exports.onPinChanged = function(command, data, success, error) {
+  exec(success, error, 'Firmata', 'onPinChanged', [command, data])
+}
