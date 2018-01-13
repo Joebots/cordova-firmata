@@ -63,6 +63,6 @@ exports.sendMessage = function(command, data, success, error) {
   exec(success, error, 'Firmata', 'sendMessage', [command, data])
 }
 
-exports.onPinChanged = function(command, data, success, error) {
-  exec(success, error, 'Firmata', 'onPinChanged', [command, data])
+exports.onPinChanged = function(pin, success, error) {
+  exec(success, error, 'Firmata', 'onPinChanged', [pin])
 }

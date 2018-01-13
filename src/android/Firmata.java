@@ -237,8 +237,11 @@ public class Firmata extends CordovaPlugin {
 
     private void onPinChanged(final int pin, final CallbackContext callbackContext) {
         try {
-            device.getPin(pin).setMode(Pin.Mode.INPUT);
-            device.getPin(pin).addEventListener(new PinEventListener() {
+            Pin devicePin = device.getPin(pin);
+            if (devicePin.getMode() == Pin.Mode.OUTPUT) {
+                devicePin.setMode(Pin.Mode.INPUT);
+            }
+            devicePin.addEventListener(new PinEventListener() {
                 @Override
                 public void onModeChange(IOEvent ioEvent) {
 
@@ -246,7 +249,9 @@ public class Firmata extends CordovaPlugin {
 
                 @Override
                 public void onValueChange(IOEvent ioEvent) {
-                    callbackContext.success((int) ioEvent.getValue());
+                    PluginResult result = new PluginResult(PluginResult.Status.OK, ioEvent.getValue());
+                    result.setKeepCallback(true);
+                    callbackContext.sendPluginResult(result);
                 }
             });
         } catch (IOException e) {
