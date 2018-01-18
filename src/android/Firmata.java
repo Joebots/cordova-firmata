@@ -195,6 +195,10 @@ public class Firmata extends CordovaPlugin {
     }
 
     private void analogRead(final int pin, final CallbackContext callbackContext) {
+        Pin devicePin = device.getPin(pin);
+        if (devicePin.getMode() == Pin.Mode.OUTPUT) {
+            pinMode(pin, Pin.Mode.INPUT, callbackContext);
+        }
         long value = device.getPin(pin).getValue();
         callbackContext.success((int)value);
     }
