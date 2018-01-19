@@ -185,7 +185,9 @@ public class Firmata extends CordovaPlugin {
     }
 
     private void reset(final CallbackContext callbackContext) {
-        //device.reset();
+        for (Pin pin : device.getPins()) {
+            pin.removeAllEventListeners();
+        }
         callbackContext.success();
     }
 
