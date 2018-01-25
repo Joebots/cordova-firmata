@@ -148,6 +148,10 @@ public class Firmata extends CordovaPlugin {
 
             final UsbSerialPort port = ports.get(0);
             if (usbManager.hasPermission(port.getDriver().getDevice())) {
+                if (usbReceiver != null) {
+                    webView.getContext().unregisterReceiver(usbReceiver);
+                    usbReceiver = null;
+                }
                 cordova.getThreadPool().execute(new Runnable() {
                     public void run() {
                         try {
@@ -268,20 +272,20 @@ public class Firmata extends CordovaPlugin {
     private int boolToInt(boolean b) {
         return b ? 1 : 0;
     }
-/*
-    private void sendMessage(int command, JSONArray data, final CallbackContext callbackContext) {
-        try {
-            byte[] bytes = new byte[data.length()];
-            for (int i = 0; i < data.length(); i++) {
-                bytes[i] = (byte) data.getInt(i);
+    /*
+        private void sendMessage(int command, JSONArray data, final CallbackContext callbackContext) {
+            try {
+                byte[] bytes = new byte[data.length()];
+                for (int i = 0; i < data.length(); i++) {
+                    bytes[i] = (byte) data.getInt(i);
+                }
+                device.sendMessage((byte) command, bytes);
+                callbackContext.success();
+            } catch (JSONException e) {
+                callbackContext.error(e.getMessage());
             }
-            device.sendMessage((byte) command, bytes);
-            callbackContext.success();
-        } catch (JSONException e) {
-            callbackContext.error(e.getMessage());
         }
-    }
-*/
+    */
     private class UsbBroadcastReceiver extends BroadcastReceiver {
         private final CallbackContext callbackContext;
 
