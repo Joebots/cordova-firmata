@@ -238,6 +238,11 @@ public class Firmata extends CordovaPlugin {
 
     private void servoWrite(final int pin, final int angle, final CallbackContext callbackContext) {
         try {
+            Pin devicePin = device.getPin(pin);
+            if (devicePin.getMode() != Pin.Mode.SERVO) {
+                devicePin.setMode(Pin.Mode.SERVO);
+                devicePin.setServoMode(0, 180);
+            }
             device.getPin(pin).setValue(angle);
             callbackContext.success();
         } catch (IOException e) {
