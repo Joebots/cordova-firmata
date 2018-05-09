@@ -305,6 +305,11 @@ public class Firmata extends CordovaPlugin {
         try {
             I2CDevice i2cDevice = device.getI2CDevice(address);
             i2cDevice.subscribe(new I2CListener() {
+				@Override
+                public int compareTo(I2CListener o) {
+                    return hashCode() - o.hashCode();
+                }
+                
                 @Override
                 public void onReceive(I2CEvent i2CEvent) {
                     try {
