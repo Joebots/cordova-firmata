@@ -17,7 +17,7 @@
         <resource-file src="lib/android/usb-serial-for-android-0.2.0-SNAPSHOT.aar" target="libs/usb-serial-for-android.aar" />
         
         <framework src="src/android/firmata4j-android.gradle" custom="true" type="gradleReference" />
-        <resource-file src="lib/android/firmata4j-android-0.1.0-SNAPSHOT.aar" target="libs/firmata4j-android.aar" />
+        <resource-file src="lib/android/firmata4j-android-0.2.0-SNAPSHOT.aar" target="libs/firmata4j-android.aar" />
     </platform>
     <platform name="browser">
         <config-file target="config.xml" parent="/*">
