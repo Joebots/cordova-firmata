@@ -17,12 +17,16 @@ import com.hoho.android.usbserial.driver.UsbSerialProber;
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaPlugin;
 import org.apache.cordova.PluginResult;
+import org.firmata4j.I2CDevice;
+import org.firmata4j.I2CEvent;
+import org.firmata4j.I2CListener;
 import org.firmata4j.IOEvent;
 import org.firmata4j.Pin;
 import org.firmata4j.PinEventListener;
 import org.firmata4j.firmata.FirmataDevice;
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -109,7 +113,12 @@ public class Firmata extends CordovaPlugin {
             int pin = args.getInt(0);
             this.onPinChanged(pin, callbackContext);
             return true;
-        } /*else if (action.equals("sendMessage")) {
+        } else if (action.equals("onI2CEvent")) {
+            int address = args.getInt(0);
+            int register = args.getInt(1);
+            int messageLength = args.getInt(2);
+            this.onI2CEvent((byte)address, register, (byte)messageLength, callbackContext);
+        }/*else if (action.equals("sendMessage")) {
             int command = args.getInt(0);
             JSONArray data = args.getJSONArray(1);
             this.sendMessage(command, data, callbackContext);
@@ -291,6 +300,32 @@ public class Firmata extends CordovaPlugin {
             }
         }
     */
+
+    private void onI2CEvent(final byte address, final int register, final byte messageLength, final CallbackContext callbackContext) {
+        try {
+            I2CDevice i2cDevice = device.getI2CDevice(address);
+            i2cDevice.subscribe(new I2CListener() {
+                @Override
+                public void onReceive(I2CEvent i2CEvent) {
+                    try {
+                        JSONObject event = new JSONObject();
+                        event.put("device", i2CEvent.getDevice().getAddress());
+                        event.put("register", i2CEvent.getRegister());
+                        event.put("data", i2CEvent.getData());
+                        PluginResult result = new PluginResult(PluginResult.Status.OK, event);
+                        result.setKeepCallback(true);
+                        callbackContext.sendPluginResult(result);
+                    } catch(JSONException e) {
+                        callbackContext.error(e.getMessage());
+                    }
+                }
+            });
+            i2cDevice.startReceivingUpdates(register, messageLength);
+        } catch (IOException e) {
+            callbackContext.error(e.getMessage());
+        }
+    }
+
     private class UsbBroadcastReceiver extends BroadcastReceiver {
         private final CallbackContext callbackContext;
 

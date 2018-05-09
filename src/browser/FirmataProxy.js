@@ -16,6 +16,7 @@ module.exports = {
   servoWrite: success,
   cleanup: success,
   sendMessage: success,
+  onI2CEvent: success
 }
 
 require('cordova/exec/proxy').add('Firmata', module.exports)

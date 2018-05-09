@@ -66,3 +66,7 @@ exports.sendMessage = function(command, data, success, error) {
 exports.onPinChanged = function(pin, success, error) {
   exec(success, error, 'Firmata', 'onPinChanged', [pin])
 }
+
+exports.onI2CEvent = function(address, register, messageLength, success, error) {
+  exec(success, error, 'Firmata', 'onI2CEvent', [address, register, messageLength])
+}
