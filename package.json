@@ -1,6 +1,6 @@
 {
   "name": "cordova-firmata",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "Cordova Plugin to provide firmata over USB",
   "main": "www/firmata.js",
   "scripts": {
