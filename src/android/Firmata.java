@@ -27,6 +27,8 @@ import org.firmata4j.firmata.FirmataDevice;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -35,6 +37,7 @@ import java.util.List;
 public class Firmata extends CordovaPlugin {
     private static final String TAG = "CordovaFirmata";
     private static final String ACTION_USB_PERMISSION = TAG + ".USB_PERMISSION";
+    private static final Logger LOGGER = LoggerFactory.getLogger(Firmata.class);
 
     private static FirmataDevice device;
 
@@ -118,12 +121,8 @@ public class Firmata extends CordovaPlugin {
             int register = args.getInt(1);
             int messageLength = args.getInt(2);
             this.onI2CEvent((byte)address, register, (byte)messageLength, callbackContext);
-        }/*else if (action.equals("sendMessage")) {
-            int command = args.getInt(0);
-            JSONArray data = args.getJSONArray(1);
-            this.sendMessage(command, data, callbackContext);
             return true;
-        }*/
+        }
         return false;
     }
 
@@ -316,17 +315,22 @@ public class Firmata extends CordovaPlugin {
                         JSONObject event = new JSONObject();
                         event.put("device", i2CEvent.getDevice().getAddress());
                         event.put("register", i2CEvent.getRegister());
-                        event.put("data", i2CEvent.getData());
+                        JSONArray data = new JSONArray(i2CEvent.getData());
+                        event.put("data", data);
                         PluginResult result = new PluginResult(PluginResult.Status.OK, event);
                         result.setKeepCallback(true);
                         callbackContext.sendPluginResult(result);
                     } catch(JSONException e) {
-                        callbackContext.error(e.getMessage());
+                        LOGGER.error("Error: ", e);
+                        PluginResult result = new PluginResult(PluginResult.Status.ERROR, e.getMessage());
+                        result.setKeepCallback(true);
+                        callbackContext.sendPluginResult(result);
                     }
                 }
             });
             i2cDevice.startReceivingUpdates(register, messageLength);
         } catch (IOException e) {
+            LOGGER.error("Error: ", e);
             callbackContext.error(e.getMessage());
         }
     }
