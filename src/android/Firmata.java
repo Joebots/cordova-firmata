@@ -120,7 +120,7 @@ public class Firmata extends CordovaPlugin {
             int address = args.getInt(0);
             int register = args.getInt(1);
             int messageLength = args.getInt(2);
-            this.onI2CEvent((byte)address, register, (byte)messageLength, callbackContext);
+            this.onI2CEvent((byte) address, register, (byte) messageLength, callbackContext);
             return true;
         }
         return false;
@@ -204,17 +204,29 @@ public class Firmata extends CordovaPlugin {
     }
 
     private void digitalRead(final int pin, final CallbackContext callbackContext) {
-        long value = device.getPin(pin).getValue();
-        callbackContext.success((int)value);
+        try {
+            Pin devicePin = device.getPin(pin);
+            if (devicePin.getMode() != Pin.Mode.INPUT) {
+                devicePin.setMode(Pin.Mode.INPUT);
+            }
+            long value = device.getPin(pin).getValue();
+            callbackContext.success((int) value);
+        } catch (IOException e) {
+            callbackContext.error(e.getMessage());
+        }
     }
 
     private void analogRead(final int pin, final CallbackContext callbackContext) {
-        Pin devicePin = device.getPin(pin);
-        if (devicePin.getMode() == Pin.Mode.OUTPUT) {
-            pinMode(pin, Pin.Mode.INPUT, callbackContext);
+        try {
+            Pin devicePin = device.getPin(pin);
+            if (devicePin.getMode() != Pin.Mode.ANALOG) {
+                devicePin.setMode(Pin.Mode.ANALOG);
+            }
+            long value = device.getPin(pin).getValue();
+            callbackContext.success((int) value);
+        } catch (IOException e) {
+            callbackContext.error(e.getMessage());
         }
-        long value = device.getPin(pin).getValue();
-        callbackContext.success((int)value);
     }
 
     private void pinMode(final int pin, final Pin.Mode mode, final CallbackContext callbackContext) {
@@ -228,7 +240,11 @@ public class Firmata extends CordovaPlugin {
 
     private void digitalWrite(final int pin, final boolean value, final CallbackContext callbackContext) {
         try {
-            device.getPin(pin).setValue(value? 1L: 0L);
+            Pin devicePin = device.getPin(pin);
+            if (devicePin.getMode() != Pin.Mode.OUTPUT) {
+                devicePin.setMode(Pin.Mode.OUTPUT);
+            }
+            device.getPin(pin).setValue(value ? 1L : 0L);
             callbackContext.success();
         } catch (IOException e) {
             callbackContext.error(e.getMessage());
@@ -237,6 +253,10 @@ public class Firmata extends CordovaPlugin {
 
     private void analogWrite(final int pin, final int value, final CallbackContext callbackContext) {
         try {
+            Pin devicePin = device.getPin(pin);
+            if (devicePin.getMode() != Pin.Mode.PWM) {
+                devicePin.setMode(Pin.Mode.PWM);
+            }
             device.getPin(pin).setValue(value);
             callbackContext.success();
         } catch (IOException e) {
@@ -261,7 +281,7 @@ public class Firmata extends CordovaPlugin {
     private void onPinChanged(final int pin, final CallbackContext callbackContext) {
         try {
             Pin devicePin = device.getPin(pin);
-            if (devicePin.getMode() == Pin.Mode.OUTPUT) {
+            if (devicePin.getMode() != Pin.Mode.INPUT) {
                 devicePin.setMode(Pin.Mode.INPUT);
             }
             devicePin.addEventListener(new PinEventListener() {
@@ -304,11 +324,11 @@ public class Firmata extends CordovaPlugin {
         try {
             I2CDevice i2cDevice = device.getI2CDevice(address);
             i2cDevice.subscribe(new I2CListener() {
-				@Override
+                @Override
                 public int compareTo(I2CListener o) {
                     return hashCode() - o.hashCode();
                 }
-                
+
                 @Override
                 public void onReceive(I2CEvent i2CEvent) {
                     try {
@@ -320,7 +340,7 @@ public class Firmata extends CordovaPlugin {
                         PluginResult result = new PluginResult(PluginResult.Status.OK, event);
                         result.setKeepCallback(true);
                         callbackContext.sendPluginResult(result);
-                    } catch(JSONException e) {
+                    } catch (JSONException e) {
                         LOGGER.error("Error: ", e);
                         PluginResult result = new PluginResult(PluginResult.Status.ERROR, e.getMessage());
                         result.setKeepCallback(true);
