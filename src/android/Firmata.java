@@ -209,7 +209,7 @@ public class Firmata extends CordovaPlugin {
             if (devicePin.getMode() != Pin.Mode.INPUT) {
                 devicePin.setMode(Pin.Mode.INPUT);
             }
-            long value = device.getPin(pin).getValue();
+            long value = devicePin.getValue();
             callbackContext.success((int) value);
         } catch (IOException e) {
             callbackContext.error(e.getMessage());
@@ -222,7 +222,7 @@ public class Firmata extends CordovaPlugin {
             if (devicePin.getMode() != Pin.Mode.ANALOG) {
                 devicePin.setMode(Pin.Mode.ANALOG);
             }
-            long value = device.getPin(pin).getValue();
+            long value = devicePin.getValue();
             callbackContext.success((int) value);
         } catch (IOException e) {
             callbackContext.error(e.getMessage());
@@ -244,7 +244,7 @@ public class Firmata extends CordovaPlugin {
             if (devicePin.getMode() != Pin.Mode.OUTPUT) {
                 devicePin.setMode(Pin.Mode.OUTPUT);
             }
-            device.getPin(pin).setValue(value ? 1L : 0L);
+            devicePin.setValue(value ? 1L : 0L);
             callbackContext.success();
         } catch (IOException e) {
             callbackContext.error(e.getMessage());
@@ -254,10 +254,7 @@ public class Firmata extends CordovaPlugin {
     private void analogWrite(final int pin, final int value, final CallbackContext callbackContext) {
         try {
             Pin devicePin = device.getPin(pin);
-            if (devicePin.getMode() != Pin.Mode.PWM) {
-                devicePin.setMode(Pin.Mode.PWM);
-            }
-            device.getPin(pin).setValue(value);
+            devicePin.setValue(value);
             callbackContext.success();
         } catch (IOException e) {
             callbackContext.error(e.getMessage());
@@ -271,7 +268,7 @@ public class Firmata extends CordovaPlugin {
                 devicePin.setMode(Pin.Mode.SERVO);
                 devicePin.setServoMode(0, 180);
             }
-            device.getPin(pin).setValue(angle);
+            devicePin.setValue(angle);
             callbackContext.success();
         } catch (IOException e) {
             callbackContext.error(e.getMessage());
